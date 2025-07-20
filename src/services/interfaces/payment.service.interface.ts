@@ -1,5 +1,5 @@
-import { CreatePaymentDto } from '../../dto/create-payment.dto';
+import { CreatePaymentDto, CreatePaymentResponseDto } from '../../dto/create-payment.dto';
 
-export interface IPaymentService {
-  handleCashOnDelivery(data: CreatePaymentDto): Promise<any>;
+export interface IOrderPaymentService {
+  handleCashOnDelivery(data: CreatePaymentDto): Promise<CreatePaymentResponseDto>;
 }

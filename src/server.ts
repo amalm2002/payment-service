@@ -4,11 +4,12 @@ import * as protoLoader from '@grpc/proto-loader';
 import connectDB from './config/mongo.config';
 import path from 'path';
 import { OrderPaymentController } from './controllers/implementaions/order-payment.controller';
+import { IOrderPaymentController } from './controllers/interfaces/order-payment.controller.interface';
 
 
 connectDB()
 
-const orderPaymentController = new OrderPaymentController()
+const orderPaymentController: IOrderPaymentController = new OrderPaymentController();
 
 const packageDef = protoLoader.loadSync(path.resolve(__dirname, './proto/payment.proto'), {
     keepCase: true,
@@ -29,7 +30,9 @@ if (!paymentProto || !paymentProto.PaymentService || !paymentProto.PaymentServic
 const server = new grpc.Server()
 
 server.addService(paymentProto.PaymentService.service, {
-    PlaceOrder: orderPaymentController.placeOrder
+    PlaceOrder: orderPaymentController.placeOrder.bind(orderPaymentController),
+    CreateOrderPayment: orderPaymentController.createOrderPayment.bind(orderPaymentController),
+    VerifyUpiPayment: orderPaymentController.verifyUpiPayment.bind(orderPaymentController),
 })
 
 const grpcServer = () => {

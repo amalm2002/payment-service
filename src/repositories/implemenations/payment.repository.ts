@@ -1,19 +1,26 @@
+import { Types } from 'mongoose';
 import { PaymentModel } from '../../models/payment.model';
 import { CreatePaymentDto } from '../../dto/create-payment.dto';
 import { IPaymentRepository } from '../interfaces/payment.repository.interface';
+import { IPayment } from '../../models/interfaces/payment.types';
+
 
 export class PaymentRepository implements IPaymentRepository {
-    async createPayment(data: CreatePaymentDto): Promise<any> {
-        const payment = new PaymentModel(data);
+    async createPayment(data: CreatePaymentDto): Promise<IPayment> {
+        const payment = new PaymentModel({
+            ...data,
+            userId: new Types.ObjectId(data.userId),
+        });
         return await payment.save();
     }
-    async updatePaymentStatus(paymentId: string, status: 'COMPLETED' | 'FAILED', orderId: string): Promise<any> {
+
+    async updatePaymentStatus(paymentId: string, status: 'COMPLETED' | 'FAILED', orderId: string): Promise<IPayment> {
         try {
             const updatedPayment = await PaymentModel.findByIdAndUpdate(
                 paymentId,
                 {
                     status,
-                    orderId,
+                    orderId: new Types.ObjectId(orderId),
                 },
                 { new: true }
             );

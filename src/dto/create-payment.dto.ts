@@ -14,3 +14,11 @@ export interface CreatePaymentDto {
     };
 }
 
+
+
+export interface CreatePaymentResponseDto {
+    payment?: any;
+    success?: boolean;
+    orderId?: string;
+    message?: string;
+}
