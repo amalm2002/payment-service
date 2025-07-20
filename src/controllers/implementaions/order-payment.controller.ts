@@ -6,26 +6,36 @@ const repository = new PaymentRepository();
 const service = new PaymentService(repository);
 
 export class OrderPaymentController {
-    async placeOrder(call: any, callback: any): Promise<void> {
-        try {
-            const data = call.request;
-            const paymentDto: CreatePaymentDto = {
-                userId: data.userId,
-                cartItems: data.cartItems,
-                subtotal: data.subtotal,
-                deliveryFee: data.deliveryFee,
-                tax: data.tax,
-                total: data.total,
-                address: data.address,
-                phoneNumber: data.phoneNumber,
-                paymentMethod: data.paymentMethod,
-            };
+  async placeOrder(call: any, callback: any): Promise<void> {
+    try {
+        const data = call.request;
 
-            const payment = await service.handleCashOnDelivery(paymentDto);
-            // callback(null, { message: 'Order placed successfully', paymentId: payment._id });
-        } catch (error) {
-            console.error('Error in placeOrder:', error);
-            callback(error);
-        }
+        const paymentDto: CreatePaymentDto = {
+            userId: data.userId,
+            cartItems: data.cartItems,
+            subtotal: data.subtotal,
+            deliveryFee: data.deliveryFee,
+            tax: data.tax,
+            total: data.total,
+            address: data.address,
+            phoneNumber: data.phoneNumber,
+            paymentMethod: data.paymentMethod,
+            location: data.location,
+        };
+
+        const paymentResult = await service.handleCashOnDelivery(paymentDto);
+
+        callback(null, {
+            message: 'Order placed successfully',
+            paymentId: paymentResult.payment._id,
+            orderId: paymentResult.orderId,
+            success: paymentResult.success,
+        });
+
+    } catch (error) {
+        console.error('Error in placeOrder:', error);
+        callback(error);
     }
+}
+
 }

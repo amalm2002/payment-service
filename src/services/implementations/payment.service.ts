@@ -4,20 +4,27 @@ import { IPaymentRepository } from '../../repositories/interfaces/payment.reposi
 import RabbitMqClient from '../../rabbitmq/client';
 
 export class PaymentService implements IPaymentService {
-    constructor(private readonly paymentRepository: IPaymentRepository) {}
+    constructor(private readonly paymentRepository: IPaymentRepository) { }
 
     async handleCashOnDelivery(data: CreatePaymentDto) {
         const payment = await this.paymentRepository.createPayment(data);
 
         const operation = 'Create-COD-Order';
-
         const result = await RabbitMqClient.produce(data, operation);
 
         console.log('Order service replied with:', result);
 
-        // Optionally update payment status
-        // await this.paymentRepository.updatePaymentStatus(payment.id, result?.status === 'success' ? 'COMPLETED' : 'FAILED');
+        await this.paymentRepository.updatePaymentStatus(
+            payment.id,
+            result?.success ? 'COMPLETED' : 'FAILED',
+            result.orderId
+        );
 
-        return payment;
+        return {
+            payment,
+            success: result?.success,
+            orderId: result?.orderId
+        };
     }
+
 }

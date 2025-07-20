@@ -8,4 +8,9 @@ export interface CreatePaymentDto {
     address: string;
     phoneNumber: string;
     paymentMethod: string;
+    location: {
+        latitude: number;
+        longitude: number;
+    };
 }
+
