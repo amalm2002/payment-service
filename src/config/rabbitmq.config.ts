@@ -6,6 +6,7 @@ export default {
         url: String(process.env.RABBITMQ_URL)
     },
     queue: {
-        orderServiceQueue: 'order_service_queue'
+        orderServiceQueue: 'order_service_queue',
+        restaurantServiceQueue: 'restaurant_queue'
     }
 }

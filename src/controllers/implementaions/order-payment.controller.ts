@@ -1,12 +1,13 @@
-import { PaymentRepository } from '../../repositories/implemenations/payment.repository';
-import { OrderPaymentService } from '../../services/implementations/payment.service';
 import { CreatePaymentDto } from '../../dto/create-payment.dto';
 import { IOrderPaymentController } from '../interfaces/order-payment.controller.interface';
-
-const repository = new PaymentRepository();
-const service = new OrderPaymentService(repository);
+import { IOrderPaymentService } from '../../services/interfaces/payment.service.interface';
 
 export class OrderPaymentController implements IOrderPaymentController {
+    private orderPaymentService: IOrderPaymentService
+
+    constructor(orderPaymentService: IOrderPaymentService) {
+        this.orderPaymentService = orderPaymentService
+    }
 
     async placeOrder(call: any, callback: any): Promise<void> {
         try {
@@ -23,7 +24,7 @@ export class OrderPaymentController implements IOrderPaymentController {
                 paymentMethod: data.paymentMethod,
                 location: data.location,
             };
-            const paymentResult = await service.handleCashOnDelivery(paymentDto);
+            const paymentResult = await this.orderPaymentService.handleCashOnDelivery(paymentDto);
             callback(null, {
                 message: 'Order placed successfully',
                 paymentId: paymentResult.payment._id,
@@ -38,10 +39,46 @@ export class OrderPaymentController implements IOrderPaymentController {
     }
 
     async createOrderPayment(call: any, callback: any): Promise<void> {
-        console.log('data ivide ethyyyy mone :', call.request);
+        try {
+            const data = call.request;
+            const paymentDto: any = {
+                amount: data.amount,
+                userId: data.userId,
+                cartItems: data.cartItems,
+                subtotal: data.subtotal,
+                deliveryFee: data.deliveryFee,
+                tax: data.tax,
+                total: data.total,
+                address: data.address,
+                phoneNumber: data.phoneNumber,
+                paymentMethod: data.paymentMethod,
+                location: data.location,
+            };
+            const paymentResult = await this.orderPaymentService.createUpiPaymentOrder(paymentDto);
+            callback(null, {
+                razorpayKey: paymentResult.razorpayKey,
+                orderId: paymentResult.orderId,
+            });
+        } catch (error) {
+            console.error('Error in upi payment controller side :', error);
+            callback(error);
+        }
     }
 
-    async verifyUpiPayment(call: any, callback: any): Promise<void> {
-        console.log('verify payment data :', call.request);
+  async verifyUpiPayment(call: any, callback: any) {
+    try {
+        const response = await this.orderPaymentService.verifyUpiPayment(call.request);
+        callback(null, {
+            success: response.success,
+            message: response.success ? "Order created successfully" : response.error,
+            orderId: response.orderId || ""
+        });
+    } catch (error: any) {
+        console.error('Error in UPI Payment Verification:', error);
+        callback({
+            code: 13,
+            message: error.message || 'Internal error'
+        });
     }
+}
 }

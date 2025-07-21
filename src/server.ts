@@ -5,11 +5,15 @@ import connectDB from './config/mongo.config';
 import path from 'path';
 import { OrderPaymentController } from './controllers/implementaions/order-payment.controller';
 import { IOrderPaymentController } from './controllers/interfaces/order-payment.controller.interface';
-
+import { OrderPaymentService } from './services/implementations/payment.service';
+import { PaymentRepository } from './repositories/implemenations/payment.repository';
 
 connectDB()
 
-const orderPaymentController: IOrderPaymentController = new OrderPaymentController();
+const repository = new PaymentRepository();
+const service = new OrderPaymentService(repository);
+
+const orderPaymentController: IOrderPaymentController = new OrderPaymentController(service);
 
 const packageDef = protoLoader.loadSync(path.resolve(__dirname, './proto/payment.proto'), {
     keepCase: true,

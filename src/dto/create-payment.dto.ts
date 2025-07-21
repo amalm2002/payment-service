@@ -1,4 +1,5 @@
 export interface CreatePaymentDto {
+    amount?:number
     userId: string;
     cartItems: any[];
     subtotal: number;

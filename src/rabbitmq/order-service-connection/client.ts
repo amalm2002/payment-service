@@ -1,11 +1,11 @@
 import { Channel, connect, Connection } from "amqplib";
-import rabbitmqConfig from "../config/rabbitmq.config";
+import rabbitmqConfig from "../../config/rabbitmq.config";
 import Producer from "./producer";
 import { EventEmitter } from 'events';
 import Consumer from "./consumer";
 
 class RabbitMqClient {
-    private constructor() {}
+    private constructor() { }
 
     private static instance: RabbitMqClient | null = null;
     private isInitialized = false;
@@ -52,12 +52,14 @@ class RabbitMqClient {
 
     async produce(data: any, operation: string) {
         console.log(operation,'===============');
-        
+
         if (!this.isInitialized) {
             await this.initialize();
         }
         return await this.producer?.produceMessage(data, operation);
     }
+
+
 }
 
 export default RabbitMqClient.getInstance();

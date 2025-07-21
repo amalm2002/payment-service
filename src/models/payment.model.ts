@@ -1,4 +1,4 @@
-import mongoose, { Document, Schema, Model, Types } from 'mongoose';
+import mongoose, { Schema, Model } from 'mongoose';
 import { IPayment } from './interfaces/payment.types';
 
 const paymentSchema: Schema<IPayment> = new mongoose.Schema(

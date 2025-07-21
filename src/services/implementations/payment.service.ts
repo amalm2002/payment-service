@@ -1,16 +1,40 @@
 import { IOrderPaymentService } from '../interfaces/payment.service.interface';
 import { CreatePaymentDto, CreatePaymentResponseDto } from '../../dto/create-payment.dto';
 import { IPaymentRepository } from '../../repositories/interfaces/payment.repository.interface';
-import RabbitMqClient from '../../rabbitmq/client';
+import RabbitMqOrderClient from '../../rabbitmq/order-service-connection/client';
+// import RabbitMqRestaurantClient from '../../rabbitmq/restaurant-service-connection/client';
+import Razorpay from 'razorpay';
+import crypto from 'crypto';
+import { createHash } from 'crypto';
+import { generateCartHash } from '../../utils/cart-hash.util';
+import redisClient from '../../config/redis.config';
 
 export class OrderPaymentService implements IOrderPaymentService {
-    constructor(private readonly paymentRepository: IPaymentRepository) { }
+    private readonly razorpay: Razorpay;
+
+    constructor(private readonly paymentRepository: IPaymentRepository) {
+        this.razorpay = new Razorpay({
+            key_id: process.env.RAZORPAY_KEY_ID || '',
+            key_secret: process.env.RAZORPAY_SECRET_ID || ''
+        });
+    }
+
+    private generateCartHash(cartItems: any[]): string {
+        const cartString = JSON.stringify(
+            cartItems.map(item => ({
+                id: item.id,
+                quantity: item.quantity,
+                price: item.price,
+            })).sort((a, b) => a.id.localeCompare(b.id))
+        );
+        return createHash('sha256').update(cartString).digest('hex');
+    }
 
     async handleCashOnDelivery(data: CreatePaymentDto): Promise<CreatePaymentResponseDto> {
         try {
             const payment = await this.paymentRepository.createPayment(data);
             const operation = 'Create-COD-Order';
-            const result = await RabbitMqClient.produce(data, operation);
+            const result = await RabbitMqOrderClient.produce(data, operation);
             await this.paymentRepository.updatePaymentStatus(
                 payment.id,
                 result?.success ? 'COMPLETED' : 'FAILED',
@@ -24,6 +48,78 @@ export class OrderPaymentService implements IOrderPaymentService {
             };
         } catch (error: any) {
             return { message: (error as Error).message, success: false }
+        }
+    }
+
+    async createUpiPaymentOrder(data: any): Promise<any> {
+        try {
+            const { amount, userId, cartItems } = data;
+            const cartHash = this.generateCartHash(cartItems);
+            const payload = {
+                amount: amount * 100,
+                currency: 'INR',
+                receipt: `receipt_${new Date().getTime()}`,
+            };
+            const rawOrder = await this.razorpay.orders.create(payload);
+            return {
+                orderId: rawOrder.id,
+                razorpayKey: process.env.RAZORPAY_KEY_ID,
+            };
+        } catch (error) {
+            console.error('Error in createOrder:', error);
+            return { error: `Failed to create order: ${(error as Error).message}` };
+        }
+    }
+
+    async verifyUpiPayment(data: any): Promise<any> {
+        try {
+            const { razorpayOrderId, razorpayPaymentId, razorpaySignature, orderData } = data;
+            const razorData = razorpayOrderId + '|' + razorpayPaymentId;
+
+            const expectedSignature = crypto
+                .createHmac('sha256', process.env.RAZORPAY_SECRET_ID || '')
+                .update(razorData.toString())
+                .digest('hex');
+
+            if (expectedSignature !== razorpaySignature) {
+                return { success: false, error: 'Invalid signature' };
+            }
+
+            const cartHash = generateCartHash(orderData.cartItems);
+            const lockKey = `order:lock:${orderData.userId}:${cartHash}`;
+            const existingLock = await redisClient.get(lockKey);
+
+            if (existingLock) {
+                return { success: false, error: 'Duplicate payment in progress. Please wait.' };
+            }
+
+            await redisClient.set(lockKey, 'locked', {
+                EX: 60,
+            });
+
+            const operation = 'Create-UPI-Order';
+            const orderResult = await RabbitMqOrderClient.produce(orderData, operation);
+
+            console.log('Order service response:', orderResult);
+
+            if (!orderResult || !orderResult.orderId) {
+                throw new Error('Order service did not return a valid orderId');
+            }
+
+            await redisClient.del(lockKey);
+
+            return { success: true, orderId: orderResult.orderId };
+        } catch (error: any) {
+            const cartHash = generateCartHash(data?.orderData?.cartItems || []);
+            const lockKey = `order:lock:${data?.orderData?.userId}:${cartHash}`;
+            await redisClient.del(lockKey);
+
+            console.error('UPI Payment verification failed:', error);
+
+            return {
+                success: false,
+                error: `Payment verification failed: ${error.message || 'Unknown error'}`
+            };
         }
     }
 
