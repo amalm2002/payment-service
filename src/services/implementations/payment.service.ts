@@ -65,7 +65,6 @@ export class OrderPaymentService implements IOrderPaymentService {
             }
             const operation = 'Check-Stock'
             const stockCheck = await RabbitMqRestaurantClient.produce(data.cartItems, operation);
-            console.log('response on stockCheck :', stockCheck);
 
             if (!stockCheck?.success) {
                 return { error: stockCheck.message || 'Stock check failed.' };
@@ -107,16 +106,13 @@ export class OrderPaymentService implements IOrderPaymentService {
             const lockKey = `order:lock:${orderData.userId}:${cartHash}`;
 
             const operation_1 = 'Reduce-Stock'
-            const stockReduce = await RabbitMqRestaurantClient.produce({ cartItems: orderData.cartItems }, operation_1);
+            const stockReduce = await RabbitMqRestaurantClient.produce(orderData, operation_1);
             if (!stockReduce?.success) {
                 return { success: false, error: stockReduce.message || 'Stock update failed.' };
             }
 
             const operation = 'Create-UPI-Order';
             const orderResult = await RabbitMqOrderClient.produce(orderData, operation);
-
-            // console.log('Order service response:', orderResult);
-
             if (!orderResult || !orderResult.orderId) {
                 throw new Error('Order service did not return a valid orderId');
             }
