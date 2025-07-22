@@ -1,6 +1,7 @@
-import { CreatePaymentDto } from '../../dto/create-payment.dto';
+import { CreatePaymentDTO, VerifyUpiPaymentDTO } from '../../dto/create-payment.dto';
 import { IOrderPaymentController } from '../interfaces/order-payment.controller.interface';
 import { IOrderPaymentService } from '../../services/interfaces/payment.service.interface';
+import { error } from 'console';
 
 export class OrderPaymentController implements IOrderPaymentController {
     private orderPaymentService: IOrderPaymentService
@@ -12,7 +13,7 @@ export class OrderPaymentController implements IOrderPaymentController {
     async placeOrder(call: any, callback: any): Promise<void> {
         try {
             const data = call.request;
-            const paymentDto: CreatePaymentDto = {
+            const paymentDto: CreatePaymentDTO = {
                 userId: data.userId,
                 cartItems: data.cartItems,
                 subtotal: data.subtotal,
@@ -41,7 +42,7 @@ export class OrderPaymentController implements IOrderPaymentController {
     async createOrderPayment(call: any, callback: any): Promise<void> {
         try {
             const data = call.request;
-            const paymentDto: any = {
+            const paymentDto: CreatePaymentDTO = {
                 amount: data.amount,
                 userId: data.userId,
                 cartItems: data.cartItems,
@@ -58,6 +59,7 @@ export class OrderPaymentController implements IOrderPaymentController {
             callback(null, {
                 razorpayKey: paymentResult.razorpayKey,
                 orderId: paymentResult.orderId,
+                error: paymentResult.error
             });
         } catch (error) {
             console.error('Error in upi payment controller side :', error);
@@ -65,20 +67,27 @@ export class OrderPaymentController implements IOrderPaymentController {
         }
     }
 
-  async verifyUpiPayment(call: any, callback: any) {
-    try {
-        const response = await this.orderPaymentService.verifyUpiPayment(call.request);
-        callback(null, {
-            success: response.success,
-            message: response.success ? "Order created successfully" : response.error,
-            orderId: response.orderId || ""
-        });
-    } catch (error: any) {
-        console.error('Error in UPI Payment Verification:', error);
-        callback({
-            code: 13,
-            message: error.message || 'Internal error'
-        });
+    async verifyUpiPayment(call: any, callback: any): Promise<void> {
+        try {
+            const data = call.request
+            const verifyUpiPayment: VerifyUpiPaymentDTO = {
+                razorpayOrderId: data.razorpayOrderId,
+                razorpayPaymentId: data.razorpayPaymentId,
+                razorpaySignature: data.razorpaySignature,
+                orderData: data.orderData
+            }
+            const response = await this.orderPaymentService.verifyUpiPayment(verifyUpiPayment);
+            callback(null, {
+                success: response.success,
+                message: response.success ? "Order created successfully" : response.error,
+                orderId: response.orderId || ""
+            });
+        } catch (error: any) {
+            console.error('Error in UPI Payment Verification:', error);
+            callback({
+                code: 13,
+                message: error.message || 'Internal error'
+            });
+        }
     }
-}
 }

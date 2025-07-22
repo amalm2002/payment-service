@@ -1,5 +1,5 @@
-export interface CreatePaymentDto {
-    amount?:number
+export interface CreatePaymentDTO {
+    amount?: number
     userId: string;
     cartItems: any[];
     subtotal: number;
@@ -15,11 +15,28 @@ export interface CreatePaymentDto {
     };
 }
 
-
-
-export interface CreatePaymentResponseDto {
+export interface CreatePaymentResponseDTO {
     payment?: any;
     success?: boolean;
     orderId?: string;
     message?: string;
+}
+
+export interface CreateUPIPaymentResponseDTO {
+    razorpayKey?: string;
+    orderId?: string;
+    error?: string;
+}
+
+export interface VerifyUpiPaymentDTO {
+    razorpayOrderId: string;
+    razorpayPaymentId: string;
+    razorpaySignature: string;
+    orderData: any
+}
+
+export interface VerifyUpiPaymentResponseDTO {
+    orderId?: string;
+    success?: boolean;
+    error?: string
 }

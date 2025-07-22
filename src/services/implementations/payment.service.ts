@@ -1,8 +1,8 @@
 import { IOrderPaymentService } from '../interfaces/payment.service.interface';
-import { CreatePaymentDto, CreatePaymentResponseDto } from '../../dto/create-payment.dto';
+import { CreatePaymentDTO, CreatePaymentResponseDTO, CreateUPIPaymentResponseDTO, VerifyUpiPaymentDTO, VerifyUpiPaymentResponseDTO, } from '../../dto/create-payment.dto';
 import { IPaymentRepository } from '../../repositories/interfaces/payment.repository.interface';
 import RabbitMqOrderClient from '../../rabbitmq/order-service-connection/client';
-// import RabbitMqRestaurantClient from '../../rabbitmq/restaurant-service-connection/client';
+import RabbitMqRestaurantClient from '../../rabbitmq/restaurant-service-connection/client';
 import Razorpay from 'razorpay';
 import crypto from 'crypto';
 import { createHash } from 'crypto';
@@ -30,7 +30,7 @@ export class OrderPaymentService implements IOrderPaymentService {
         return createHash('sha256').update(cartString).digest('hex');
     }
 
-    async handleCashOnDelivery(data: CreatePaymentDto): Promise<CreatePaymentResponseDto> {
+    async handleCashOnDelivery(data: CreatePaymentDTO): Promise<CreatePaymentResponseDTO> {
         try {
             const payment = await this.paymentRepository.createPayment(data);
             const operation = 'Create-COD-Order';
@@ -51,10 +51,28 @@ export class OrderPaymentService implements IOrderPaymentService {
         }
     }
 
-    async createUpiPaymentOrder(data: any): Promise<any> {
+    async createUpiPaymentOrder(data: CreatePaymentDTO): Promise<CreateUPIPaymentResponseDTO> {
         try {
             const { amount, userId, cartItems } = data;
             const cartHash = this.generateCartHash(cartItems);
+            const lockKey = `order:lock:${userId}:${cartHash}`;
+
+            const existingLock = await redisClient.get(lockKey);
+            if (existingLock) {
+                return {
+                    error: 'A payment is already in progress for this order. Please complete or wait a moment.'
+                };
+            }
+            const operation = 'Check-Stock'
+            const stockCheck = await RabbitMqRestaurantClient.produce(data.cartItems, operation);
+            console.log('response on stockCheck :', stockCheck);
+
+            if (!stockCheck?.success) {
+                return { error: stockCheck.message || 'Stock check failed.' };
+            }
+            await redisClient.set(lockKey, 'locked', {
+                EX: 120,
+            });
             const payload = {
                 amount: amount * 100,
                 currency: 'INR',
@@ -71,7 +89,7 @@ export class OrderPaymentService implements IOrderPaymentService {
         }
     }
 
-    async verifyUpiPayment(data: any): Promise<any> {
+    async verifyUpiPayment(data: VerifyUpiPaymentDTO): Promise<VerifyUpiPaymentResponseDTO> {
         try {
             const { razorpayOrderId, razorpayPaymentId, razorpaySignature, orderData } = data;
             const razorData = razorpayOrderId + '|' + razorpayPaymentId;
@@ -87,20 +105,17 @@ export class OrderPaymentService implements IOrderPaymentService {
 
             const cartHash = generateCartHash(orderData.cartItems);
             const lockKey = `order:lock:${orderData.userId}:${cartHash}`;
-            const existingLock = await redisClient.get(lockKey);
 
-            if (existingLock) {
-                return { success: false, error: 'Duplicate payment in progress. Please wait.' };
+            const operation_1 = 'Reduce-Stock'
+            const stockReduce = await RabbitMqRestaurantClient.produce({ cartItems: orderData.cartItems }, operation_1);
+            if (!stockReduce?.success) {
+                return { success: false, error: stockReduce.message || 'Stock update failed.' };
             }
-
-            await redisClient.set(lockKey, 'locked', {
-                EX: 60,
-            });
 
             const operation = 'Create-UPI-Order';
             const orderResult = await RabbitMqOrderClient.produce(orderData, operation);
 
-            console.log('Order service response:', orderResult);
+            // console.log('Order service response:', orderResult);
 
             if (!orderResult || !orderResult.orderId) {
                 throw new Error('Order service did not return a valid orderId');
@@ -113,9 +128,7 @@ export class OrderPaymentService implements IOrderPaymentService {
             const cartHash = generateCartHash(data?.orderData?.cartItems || []);
             const lockKey = `order:lock:${data?.orderData?.userId}:${cartHash}`;
             await redisClient.del(lockKey);
-
             console.error('UPI Payment verification failed:', error);
-
             return {
                 success: false,
                 error: `Payment verification failed: ${error.message || 'Unknown error'}`
