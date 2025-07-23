@@ -65,6 +65,7 @@ export class OrderPaymentService implements IOrderPaymentService {
             }
             const operation = 'Check-Stock'
             const stockCheck = await RabbitMqRestaurantClient.produce(data.cartItems, operation);
+            // console.log('stockCheck result :', stockCheck);
 
             if (!stockCheck?.success) {
                 return { error: stockCheck.message || 'Stock check failed.' };
@@ -78,9 +79,17 @@ export class OrderPaymentService implements IOrderPaymentService {
                 receipt: `receipt_${new Date().getTime()}`,
             };
             const rawOrder = await this.razorpay.orders.create(payload);
+
+            const payment = await this.paymentRepository.createPayment({
+                ...data,
+                paymentMethod: 'UPI',
+                status: 'PENDING',
+            });
+
             return {
                 orderId: rawOrder.id,
                 razorpayKey: process.env.RAZORPAY_KEY_ID,
+                paymentDbId:payment.id
             };
         } catch (error) {
             console.error('Error in createOrder:', error);
@@ -90,7 +99,7 @@ export class OrderPaymentService implements IOrderPaymentService {
 
     async verifyUpiPayment(data: VerifyUpiPaymentDTO): Promise<VerifyUpiPaymentResponseDTO> {
         try {
-            const { razorpayOrderId, razorpayPaymentId, razorpaySignature, orderData } = data;
+            const { razorpayOrderId, razorpayPaymentId, razorpaySignature, orderData,paymentDbId } = data;
             const razorData = razorpayOrderId + '|' + razorpayPaymentId;
 
             const expectedSignature = crypto
@@ -110,12 +119,20 @@ export class OrderPaymentService implements IOrderPaymentService {
             if (!stockReduce?.success) {
                 return { success: false, error: stockReduce.message || 'Stock update failed.' };
             }
+            // console.log('stockReduce :', stockReduce);
 
             const operation = 'Create-UPI-Order';
             const orderResult = await RabbitMqOrderClient.produce(orderData, operation);
             if (!orderResult || !orderResult.orderId) {
                 throw new Error('Order service did not return a valid orderId');
             }
+            // console.log('createOrder response :', orderResult);
+
+            await this.paymentRepository.updatePaymentStatus(
+                data.paymentDbId, 
+                'COMPLETED',
+                orderResult.orderId
+            );
 
             await redisClient.del(lockKey);
 

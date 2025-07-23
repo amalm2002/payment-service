@@ -13,6 +13,7 @@ export interface CreatePaymentDTO {
         latitude: number;
         longitude: number;
     };
+    status?: string;
 }
 
 export interface CreatePaymentResponseDTO {
@@ -26,9 +27,11 @@ export interface CreateUPIPaymentResponseDTO {
     razorpayKey?: string;
     orderId?: string;
     error?: string;
+    paymentDbId?:string
 }
 
 export interface VerifyUpiPaymentDTO {
+    paymentDbId:string;
     razorpayOrderId: string;
     razorpayPaymentId: string;
     razorpaySignature: string;

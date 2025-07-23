@@ -59,7 +59,8 @@ export class OrderPaymentController implements IOrderPaymentController {
             callback(null, {
                 razorpayKey: paymentResult.razorpayKey,
                 orderId: paymentResult.orderId,
-                error: paymentResult.error
+                error: paymentResult.error,
+                paymentDbId: paymentResult.paymentDbId
             });
         } catch (error) {
             console.error('Error in upi payment controller side :', error);
@@ -71,6 +72,7 @@ export class OrderPaymentController implements IOrderPaymentController {
         try {
             const data = call.request
             const verifyUpiPayment: VerifyUpiPaymentDTO = {
+                paymentDbId: data.paymentIdDB,
                 razorpayOrderId: data.razorpayOrderId,
                 razorpayPaymentId: data.razorpayPaymentId,
                 razorpaySignature: data.razorpaySignature,
