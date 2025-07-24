@@ -1,0 +1,15 @@
+services:
+  payment-service:
+    build: .
+    container_name: payment-service
+    ports:
+      - "3008:3008"
+    env_file:
+      - .env          
+      - .env.docker
+    networks:
+      - backend
+
+networks:
+  backend:
+    external: true
