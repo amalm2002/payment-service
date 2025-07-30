@@ -5,15 +5,23 @@ import connectDB from './config/mongo.config';
 import path from 'path';
 import { OrderPaymentController } from './controllers/implementaions/order-payment.controller';
 import { IOrderPaymentController } from './controllers/interfaces/order-payment.controller.interface';
-import { OrderPaymentService } from './services/implementations/payment.service';
-import { PaymentRepository } from './repositories/implemenations/payment.repository';
+import { OrderPaymentService } from './services/implementations/order-payment.service';
+import { PaymentRepository } from './repositories/implemenations/order-payment.repository';
+import { DeliveryBoyPaymentController } from './controllers/implementaions/delivery-boy-payment.controller';
+import { IDeliveryBoyPaymentController } from './controllers/interfaces/delivery-boy-payment.controller.interfaces';
+import { DeliveryBoyPaymentRepository } from './repositories/implemenations/delivery-boy-payment.repository';
+import { DeliveryBoyPaymentService } from './services/implementations/delivery-boy-payment.service';
 
 connectDB()
 
 const repository = new PaymentRepository();
 const service = new OrderPaymentService(repository);
 
+const deliveryBoyPaymentRepository = new DeliveryBoyPaymentRepository()
+const deliveryBoyPaymentService=new DeliveryBoyPaymentService(deliveryBoyPaymentRepository)
+
 const orderPaymentController: IOrderPaymentController = new OrderPaymentController(service);
+const deliveryBoyPaymentController: IDeliveryBoyPaymentController = new DeliveryBoyPaymentController(deliveryBoyPaymentService)
 
 const packageDef = protoLoader.loadSync(path.resolve(__dirname, './proto/payment.proto'), {
     keepCase: true,
@@ -37,6 +45,8 @@ server.addService(paymentProto.PaymentService.service, {
     PlaceOrder: orderPaymentController.placeOrder.bind(orderPaymentController),
     CreateOrderPayment: orderPaymentController.createOrderPayment.bind(orderPaymentController),
     VerifyUpiPayment: orderPaymentController.verifyUpiPayment.bind(orderPaymentController),
+    CreateDeliveryBoyPayment: deliveryBoyPaymentController.createDeliveryBoyPayment.bind(deliveryBoyPaymentController),
+    VerifyDeliveryBoyPayment: deliveryBoyPaymentController.verifyDeliveryBoyPayment.bind(deliveryBoyPaymentController),
 })
 
 const grpcServer = () => {

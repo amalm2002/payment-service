@@ -1,7 +1,7 @@
 import { CreatePaymentDTO, VerifyUpiPaymentDTO } from '../../dto/create-payment.dto';
 import { IOrderPaymentController } from '../interfaces/order-payment.controller.interface';
-import { IOrderPaymentService } from '../../services/interfaces/payment.service.interface';
-import { error } from 'console';
+import { IOrderPaymentService } from '../../services/interfaces/order-payment.service.interface';
+
 
 export class OrderPaymentController implements IOrderPaymentController {
     private orderPaymentService: IOrderPaymentService

@@ -1,6 +1,6 @@
-import { IOrderPaymentService } from '../interfaces/payment.service.interface';
+import { IOrderPaymentService } from '../interfaces/order-payment.service.interface';
 import { CreatePaymentDTO, CreatePaymentResponseDTO, CreateUPIPaymentResponseDTO, VerifyUpiPaymentDTO, VerifyUpiPaymentResponseDTO, } from '../../dto/create-payment.dto';
-import { IPaymentRepository } from '../../repositories/interfaces/payment.repository.interface';
+import { IPaymentRepository } from '../../repositories/interfaces/order-payment.repository.interface';
 import RabbitMqOrderClient from '../../rabbitmq/order-service-connection/client';
 import RabbitMqRestaurantClient from '../../rabbitmq/restaurant-service-connection/client';
 import Razorpay from 'razorpay';
