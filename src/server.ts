@@ -7,10 +7,10 @@ import { OrderPaymentController } from './controllers/implementaions/order-payme
 import { IOrderPaymentController } from './controllers/interfaces/order-payment.controller.interface';
 import { OrderPaymentService } from './services/implementations/order-payment.service';
 import { PaymentRepository } from './repositories/implemenations/order-payment.repository';
-import { DeliveryBoyPaymentController } from './controllers/implementaions/delivery-boy-payment.controller';
-import { IDeliveryBoyPaymentController } from './controllers/interfaces/delivery-boy-payment.controller.interfaces';
-import { DeliveryBoyPaymentRepository } from './repositories/implemenations/delivery-boy-payment.repository';
-import { DeliveryBoyPaymentService } from './services/implementations/delivery-boy-payment.service';
+import { DeliveryBoyPaymentController } from './controllers/implementaions/admin-payment.controller';
+import { IDeliveryBoyPaymentController } from './controllers/interfaces/admin-payment.controller.interfaces';
+import { DeliveryBoyPaymentRepository } from './repositories/implemenations/admin-payment.repository';
+import { DeliveryBoyPaymentService } from './services/implementations/admin-payment.service';
 
 connectDB()
 
@@ -47,6 +47,7 @@ server.addService(paymentProto.PaymentService.service, {
     VerifyUpiPayment: orderPaymentController.verifyUpiPayment.bind(orderPaymentController),
     CreateDeliveryBoyPayment: deliveryBoyPaymentController.createDeliveryBoyPayment.bind(deliveryBoyPaymentController),
     VerifyDeliveryBoyPayment: deliveryBoyPaymentController.verifyDeliveryBoyPayment.bind(deliveryBoyPaymentController),
+    CancelDeliveryBoyPayment:deliveryBoyPaymentController.cancelDeliveryBoyPayment.bind(deliveryBoyPaymentController)
 })
 
 const grpcServer = () => {

@@ -6,4 +6,5 @@ export interface IDeliveryBoyPaymentService {
         razorpaySignature: string;
         deliveryBoyId: string;
     }): Promise<any>;
+    cancelDeliveryBoyPayment(data: { deliveryBoyId: string, orderId: string }): Promise<any>
 }

@@ -8,8 +8,31 @@ const DeliveryBoyPaymentSchema = new mongoose.Schema({
     },
     amount: {
         type: Number,
-        required: true,
     },
+    completeAmount: {
+        type: Number,
+        default: 0,
+    },
+    monthlyAmount: {
+        type: Number,
+        default: 0,
+    },
+    inHandCash: {
+        type: Number,
+        default: 0,
+    },
+    earnings: [{
+        date: {
+            type: Date,
+        },
+        amount: {
+            type: Number
+        },
+        paid: {
+            type: Boolean,
+            default: false,
+        },
+    }],
     razorpayOrderId: {
         type: String,
     },

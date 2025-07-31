@@ -119,14 +119,12 @@ export class OrderPaymentService implements IOrderPaymentService {
             if (!stockReduce?.success) {
                 return { success: false, error: stockReduce.message || 'Stock update failed.' };
             }
-            // console.log('stockReduce :', stockReduce);
 
             const operation = 'Create-UPI-Order';
             const orderResult = await RabbitMqOrderClient.produce(orderData, operation);
             if (!orderResult || !orderResult.orderId) {
                 throw new Error('Order service did not return a valid orderId');
             }
-            // console.log('createOrder response :', orderResult);
 
             await this.paymentRepository.updatePaymentStatus(
                 data.paymentDbId, 

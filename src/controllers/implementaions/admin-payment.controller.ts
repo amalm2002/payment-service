@@ -1,5 +1,6 @@
-import { IDeliveryBoyPaymentController } from '../interfaces/delivery-boy-payment.controller.interfaces';
-import { IDeliveryBoyPaymentService } from '../../services/interfaces/delivery-boy-payment.service.interfaces';
+import { IDeliveryBoyPaymentController } from '../interfaces/admin-payment.controller.interfaces';
+import { IDeliveryBoyPaymentService } from '../../services/interfaces/admin-payment.service.interfaces';
+import { error } from 'console';
 
 export class DeliveryBoyPaymentController implements IDeliveryBoyPaymentController {
     constructor(private deliveryBoyPaymentService: IDeliveryBoyPaymentService) { }
@@ -14,6 +15,7 @@ export class DeliveryBoyPaymentController implements IDeliveryBoyPaymentControll
                 orderId: response.orderId,
                 amount: response.amount,
                 currency: response.currency,
+                error: response.error
             });
         } catch (error: any) {
             callback(null, {
@@ -24,13 +26,25 @@ export class DeliveryBoyPaymentController implements IDeliveryBoyPaymentControll
 
     async verifyDeliveryBoyPayment(call: any, callback: any): Promise<void> {
         try {
-            console.log('call data on verify data :', call.request);
             const response = await this.deliveryBoyPaymentService.verifyDeliveryBoyPayment(call.request);
             callback(null, response);
         } catch (error: any) {
             callback(null, {
                 success: false,
                 message: error.message || 'Verification failed',
+            });
+        }
+    }
+
+    async cancelDeliveryBoyPayment(call: any, callback: any): Promise<void> {
+        try {
+            const { deliveryBoyId, orderId } = call.request;
+            const response = await this.deliveryBoyPaymentService.cancelDeliveryBoyPayment({ deliveryBoyId, orderId });
+            callback(null, response);
+        } catch (error: any) {
+            callback(null, {
+                success: false,
+                message: error.message || 'Failed to cancel payment',
             });
         }
     }
