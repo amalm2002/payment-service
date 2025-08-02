@@ -4,9 +4,11 @@ export interface IDeliveryBoyPaymentRepository {
         amount: number;
         razorpayOrderId: string;
         status: string;
-        completeAmount: number;
-        monthlyAmount: number;
+        completeAmount?: number;
+        monthlyAmount?: number;
         inHandCash: number;
+        amountToPayDeliveryBoy?: number;
+        role: string;
         earnings: { date: Date; amount: number; paid: boolean }[];
     }): Promise<any>;
     updatePaymentStatus(
@@ -17,9 +19,11 @@ export interface IDeliveryBoyPaymentRepository {
             completeAmount: number;
             monthlyAmount: number;
             inHandCash: number;
+            amountToPayDeliveryBoy?: number;
             earnings?: { date: Date; amount: number; paid: boolean }[];
         }
     ): Promise<void>;
     findPendingPayment(deliveryBoyId: string): Promise<any>;
     findPaymentByOrderId(orderId: string): Promise<any>;
+    findPaymentsHistory(deliveryBoyId: string, role: string): Promise<any>
 }

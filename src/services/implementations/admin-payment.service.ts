@@ -5,6 +5,19 @@ import RabbitMqDeliveryBoyClient from '../../rabbitmq/delivery-boy-service-conne
 import crypto from 'crypto';
 import redisClient from '../../config/redis.config';
 
+
+interface PaymentData {
+  deliveryBoyId: string;
+  amount: number;
+  razorpayOrderId: string;
+  status: string;
+  inHandCash: number;
+  earnings: { date: Date; amount: number; paid: boolean }[];
+  role: string;
+  completeAmount?: number;
+  monthlyAmount?: number;
+}
+
 export class DeliveryBoyPaymentService implements IDeliveryBoyPaymentService {
   private razorpay: Razorpay;
 
@@ -15,10 +28,10 @@ export class DeliveryBoyPaymentService implements IDeliveryBoyPaymentService {
     });
   }
 
-  async createDeliveryBoyPayment(data: { deliveryBoyId: string; amount: number }) {
-    const { deliveryBoyId, amount } = data;
+  async createDeliveryBoyPayment(data: { deliveryBoyId: string; amount: number, role: string }) {
+    const { deliveryBoyId, amount, role } = data;
     const lockKey = `payment:lock:${deliveryBoyId}`;
-    const lockTimeout = 1 * 60 * 1000; 
+    const lockTimeout = 1 * 60 * 1000;
 
     if (!Number.isInteger(amount) || amount <= 0) {
       return { error: `Invalid amount: ${amount}. Must be a positive integer in paise.` };
@@ -52,7 +65,7 @@ export class DeliveryBoyPaymentService implements IDeliveryBoyPaymentService {
       }
 
       const shortDeliveryBoyId = deliveryBoyId.slice(0, 10);
-      const randomSuffix = Math.floor(100000 + Math.random() * 900000).toString(); 
+      const randomSuffix = Math.floor(100000 + Math.random() * 900000).toString();
       const receipt = `rcpt_${shortDeliveryBoyId}_${randomSuffix}`;
       if (receipt.length > 40) {
         console.error('Generated receipt too long:', receipt);
@@ -76,17 +89,23 @@ export class DeliveryBoyPaymentService implements IDeliveryBoyPaymentService {
         throw razorError;
       }
 
-  
-      const payment = await this.repository.createPayment({
+      const paymentData: PaymentData = {
         deliveryBoyId,
-        amount: amount / 100, 
+        amount: amount / 100,
         razorpayOrderId: razorOrder.id,
         status: 'PENDING',
-        completeAmount: 0,
-        monthlyAmount: 0,
         inHandCash: 0,
         earnings: [],
-      });
+        role: role.toUpperCase(),
+      };
+
+
+      if (role.toUpperCase() === 'ADMIN') {
+        paymentData.completeAmount = 0;
+        paymentData.monthlyAmount = 0;
+      }
+
+      const payment = await this.repository.createPayment(paymentData);
 
       return {
         razorpayKey: process.env.RAZORPAY_KEY_ID,
@@ -116,8 +135,9 @@ export class DeliveryBoyPaymentService implements IDeliveryBoyPaymentService {
     razorpayPaymentId: string;
     razorpaySignature: string;
     deliveryBoyId: string;
+    role: string;
   }) {
-    const { razorpayOrderId, razorpayPaymentId, razorpaySignature, deliveryBoyId } = data;
+    const { razorpayOrderId, razorpayPaymentId, razorpaySignature, deliveryBoyId, role } = data;
     const lockKey = `payment:lock:${deliveryBoyId}`;
 
     try {
@@ -142,20 +162,38 @@ export class DeliveryBoyPaymentService implements IDeliveryBoyPaymentService {
         paymentId: razorpayPaymentId,
       };
 
-      const operation = 'Update-Delivery-Boy-Earnings';
+      // const operation = 'Update-Delivery-Boy-Earnings';
+      const operation = role.toUpperCase() === 'ADMIN' ? 'Update-Delivery-Boy-Earnings' : 'Clear-In-Hand-Cash';
       const updateDeliveryBoyEarnings = await RabbitMqDeliveryBoyClient.produce(paymentData, operation);
 
       if (!updateDeliveryBoyEarnings.success) {
-        return { success: false, message: 'Failed to update delivery boy earnings' };
+        return { success: false, message: `Failed to ${role.toUpperCase() === 'ADMIN' ? 'update delivery boy earnings' : 'clear in-hand cash'}` };
       }
 
-      const { completeAmount, monthlyAmount, inHandCash, earnings } = updateDeliveryBoyEarnings.data;
+      console.log('updatedDeliveryBoyEarnigs :', updateDeliveryBoyEarnings);
+
+
+      const { completeAmount, monthlyAmount, inHandCash, earnings, amountToPayDeliveryBoy } = updateDeliveryBoyEarnings.data;
+
+      const updateData: any = {
+        inHandCash,
+        earnings,
+      };
+
+      if (role.toUpperCase() === 'ADMIN') {
+        updateData.completeAmount = completeAmount;
+        updateData.monthlyAmount = monthlyAmount;
+      } else {
+        updateData.completeAmount = 0;
+        updateData.monthlyAmount = 0;
+      }
 
       await this.repository.updatePaymentStatus(razorpayOrderId, razorpayPaymentId, 'COMPLETED', {
         completeAmount,
         monthlyAmount,
         inHandCash,
-        earnings, 
+        amountToPayDeliveryBoy,
+        earnings,
       });
 
       await redisClient.del(lockKey);
@@ -172,8 +210,8 @@ export class DeliveryBoyPaymentService implements IDeliveryBoyPaymentService {
     }
   }
 
-  async cancelDeliveryBoyPayment(data: { deliveryBoyId: string; orderId: string }) {
-    const { deliveryBoyId, orderId } = data;
+  async cancelDeliveryBoyPayment(data: { deliveryBoyId: string; orderId: string; role: string; }) {
+    const { deliveryBoyId, orderId, role } = data;
     const lockKey = `payment:lock:${deliveryBoyId}`;
 
     try {
@@ -182,16 +220,37 @@ export class DeliveryBoyPaymentService implements IDeliveryBoyPaymentService {
         return { success: false, message: 'No pending payment found or payment already processed' };
       }
 
-      await this.repository.updatePaymentStatus(orderId, null, 'CANCELLED', {
-        completeAmount: 0,
-        monthlyAmount: 0,
+      const updateData: any = {
         inHandCash: 0,
-      });
+      };
+
+      if (role.toUpperCase() === 'ADMIN') {
+        updateData.completeAmount = 0;
+        updateData.monthlyAmount = 0;
+      }
+
+      await this.repository.updatePaymentStatus(orderId, null, 'CANCELLED', updateData);
 
       await redisClient.del(lockKey);
 
       return { success: true, message: 'Payment cancelled successfully' };
     } catch (error: any) {
+      return { success: false, message: error.message || 'Failed to cancel payment' };
+    }
+  }
+
+  async getDeliveryBoyInHandPaymentHistory(data: { deliveryBoyId: string; role: string; }): Promise<any> {
+    const { deliveryBoyId, role } = data
+    try {
+      const formattedRole = role.toUpperCase()
+      const paymentsData = await this.repository.findPaymentsHistory(deliveryBoyId, formattedRole)
+      if (paymentsData.length === 0) {
+        return { success: false, message: ' No In-Hand payment history' }
+      } else {
+        // console.log('paymentData :', paymentsData);
+        return { success: true, payments: paymentsData, message: 'In-Hand payment history fetch successfully' }
+      }
+    } catch (error) {
       return { success: false, message: error.message || 'Failed to cancel payment' };
     }
   }

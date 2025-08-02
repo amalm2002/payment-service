@@ -7,8 +7,8 @@ export class DeliveryBoyPaymentController implements IDeliveryBoyPaymentControll
 
     async createDeliveryBoyPayment(call: any, callback: any): Promise<void> {
         try {
-            const { deliveryBoyId, amount } = call.request;
-            const response = await this.deliveryBoyPaymentService.createDeliveryBoyPayment({ deliveryBoyId, amount });
+            const { deliveryBoyId, amount, role } = call.request;
+            const response = await this.deliveryBoyPaymentService.createDeliveryBoyPayment({ deliveryBoyId, amount, role });
             callback(null, {
                 deliveryBoyId: response.deliveryBoyId,
                 razorpayKey: response.razorpayKey,
@@ -38,14 +38,28 @@ export class DeliveryBoyPaymentController implements IDeliveryBoyPaymentControll
 
     async cancelDeliveryBoyPayment(call: any, callback: any): Promise<void> {
         try {
-            const { deliveryBoyId, orderId } = call.request;
-            const response = await this.deliveryBoyPaymentService.cancelDeliveryBoyPayment({ deliveryBoyId, orderId });
+            const { deliveryBoyId, orderId, role } = call.request;
+            const response = await this.deliveryBoyPaymentService.cancelDeliveryBoyPayment({ deliveryBoyId, orderId, role });
             callback(null, response);
         } catch (error: any) {
             callback(null, {
                 success: false,
                 message: error.message || 'Failed to cancel payment',
             });
+        }
+    }
+
+    async getDeliveryBoyInHandPaymentHistory(call: any, callback: any): Promise<void> {
+        try {
+            console.log('call request :', call.request);
+            const { deliveryBoyId, role } = call.request;
+            const response = await this.deliveryBoyPaymentService.getDeliveryBoyInHandPaymentHistory({ deliveryBoyId, role });
+            callback(null, response);
+        } catch (error) {
+            callback(null, {
+                success: false,
+                message: error.message || 'Failed to cancel payment',
+            })
         }
     }
 }

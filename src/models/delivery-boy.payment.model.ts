@@ -8,18 +8,23 @@ const DeliveryBoyPaymentSchema = new mongoose.Schema({
     },
     amount: {
         type: Number,
+        required: true, 
     },
     completeAmount: {
         type: Number,
-        default: 0,
+        default: 0, 
     },
     monthlyAmount: {
         type: Number,
-        default: 0,
+        default: 0, 
     },
     inHandCash: {
         type: Number,
-        default: 0,
+        default: 0, 
+    },
+    amountToPayDeliveryBoy: {
+        type: Number,
+        default: 0, 
     },
     earnings: [{
         date: {
@@ -47,6 +52,11 @@ const DeliveryBoyPaymentSchema = new mongoose.Schema({
     createdAt: {
         type: Date,
         default: Date.now,
+    },
+    role: {
+        type: String,
+        enum: ['ADMIN', 'DELIVERYBOY'],
+        default: 'ADMIN', 
     },
 });
 

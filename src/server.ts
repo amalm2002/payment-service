@@ -18,7 +18,7 @@ const repository = new PaymentRepository();
 const service = new OrderPaymentService(repository);
 
 const deliveryBoyPaymentRepository = new DeliveryBoyPaymentRepository()
-const deliveryBoyPaymentService=new DeliveryBoyPaymentService(deliveryBoyPaymentRepository)
+const deliveryBoyPaymentService = new DeliveryBoyPaymentService(deliveryBoyPaymentRepository)
 
 const orderPaymentController: IOrderPaymentController = new OrderPaymentController(service);
 const deliveryBoyPaymentController: IDeliveryBoyPaymentController = new DeliveryBoyPaymentController(deliveryBoyPaymentService)
@@ -47,7 +47,8 @@ server.addService(paymentProto.PaymentService.service, {
     VerifyUpiPayment: orderPaymentController.verifyUpiPayment.bind(orderPaymentController),
     CreateDeliveryBoyPayment: deliveryBoyPaymentController.createDeliveryBoyPayment.bind(deliveryBoyPaymentController),
     VerifyDeliveryBoyPayment: deliveryBoyPaymentController.verifyDeliveryBoyPayment.bind(deliveryBoyPaymentController),
-    CancelDeliveryBoyPayment:deliveryBoyPaymentController.cancelDeliveryBoyPayment.bind(deliveryBoyPaymentController)
+    CancelDeliveryBoyPayment: deliveryBoyPaymentController.cancelDeliveryBoyPayment.bind(deliveryBoyPaymentController),
+    GetDeliveryBoyInHandPaymentHistory: deliveryBoyPaymentController.getDeliveryBoyInHandPaymentHistory.bind(deliveryBoyPaymentController)
 })
 
 const grpcServer = () => {

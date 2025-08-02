@@ -6,10 +6,13 @@ export class DeliveryBoyPaymentRepository implements IDeliveryBoyPaymentReposito
         deliveryBoyId: string;
         amount: number;
         razorpayOrderId: string;
-        completeAmount: number;
-        monthlyAmount: number;
+        status: string;
+        completeAmount?: number;
+        monthlyAmount?: number;
         inHandCash: number;
-        earnings: { date: Date; amount: number; paid: boolean }[];
+        amountToPayDeliveryBoy?: number;
+        earnings?: { date: Date; amount: number; paid: boolean }[];
+        role: string;
     }) {
         return await DeliveryBoyPayment.create(data);
     }
@@ -19,20 +22,25 @@ export class DeliveryBoyPaymentRepository implements IDeliveryBoyPaymentReposito
         paymentId: string | null,
         status: string,
         updateData: {
-            completeAmount: number;
-            monthlyAmount: number;
+            completeAmount?: number;
+            monthlyAmount?: number;
             inHandCash: number;
+            amountToPayDeliveryBoy?: number;
             earnings?: { date: Date; amount: number; paid: boolean }[];
         }
     ) {
         const update: any = {
             status,
-            $inc: {
-                completeAmount: updateData.completeAmount,
-                monthlyAmount: updateData.monthlyAmount,
-                inHandCash: updateData.inHandCash,
-            },
+            inHandCash: updateData.inHandCash,
         };
+
+        if (updateData.completeAmount !== undefined) {
+            update.completeAmount = updateData.completeAmount;
+        }
+
+        if (updateData.monthlyAmount !== undefined) {
+            update.monthlyAmount = updateData.monthlyAmount;
+        }
 
         if (paymentId) {
             update.razorpayPaymentId = paymentId;
@@ -54,5 +62,9 @@ export class DeliveryBoyPaymentRepository implements IDeliveryBoyPaymentReposito
 
     async findPaymentByOrderId(orderId: string) {
         return await DeliveryBoyPayment.findOne({ razorpayOrderId: orderId });
+    }
+
+    async findPaymentsHistory(deliveryBoyId: string, role: string): Promise<any> {
+        return await DeliveryBoyPayment.find({ deliveryBoyId: deliveryBoyId, role: role })
     }
 }
