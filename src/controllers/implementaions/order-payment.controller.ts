@@ -92,4 +92,30 @@ export class OrderPaymentController implements IOrderPaymentController {
             });
         }
     }
+
+
+    async handleFailedPayment(call: any, callback: any): Promise<void> {
+        try {
+            const data = call.request;
+            const failedPaymentDto = {
+                paymentDbId: data.paymentDbId,
+                userId:data.userId,
+                razorpayOrderId: data.razorpayOrderId,
+                razorpayPaymentId: data.razorpayPaymentId,
+                errorDescription: data.errorDescription,
+                errorCode: data.errorCode,
+            };
+            const response = await this.orderPaymentService.handleFailedPayment(failedPaymentDto);
+            callback(null, {
+                success: response.success,
+                message: response.message,
+            });
+        } catch (error: any) {
+            console.error('Error in handleFailedPayment:', error);
+            callback({
+                code: 13,
+                message: error.message || 'Internal error',
+            });
+        }
+    }
 }

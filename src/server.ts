@@ -45,6 +45,7 @@ server.addService(paymentProto.PaymentService.service, {
     PlaceOrder: orderPaymentController.placeOrder.bind(orderPaymentController),
     CreateOrderPayment: orderPaymentController.createOrderPayment.bind(orderPaymentController),
     VerifyUpiPayment: orderPaymentController.verifyUpiPayment.bind(orderPaymentController),
+    HandleFailedPayment: orderPaymentController.handleFailedPayment.bind(orderPaymentController),
     CreateDeliveryBoyPayment: deliveryBoyPaymentController.createDeliveryBoyPayment.bind(deliveryBoyPaymentController),
     VerifyDeliveryBoyPayment: deliveryBoyPaymentController.verifyDeliveryBoyPayment.bind(deliveryBoyPaymentController),
     CancelDeliveryBoyPayment: deliveryBoyPaymentController.cancelDeliveryBoyPayment.bind(deliveryBoyPaymentController),

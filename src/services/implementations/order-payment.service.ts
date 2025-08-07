@@ -1,5 +1,5 @@
 import { IOrderPaymentService } from '../interfaces/order-payment.service.interface';
-import { CreatePaymentDTO, CreatePaymentResponseDTO, CreateUPIPaymentResponseDTO, VerifyUpiPaymentDTO, VerifyUpiPaymentResponseDTO, } from '../../dto/create-payment.dto';
+import { CreatePaymentDTO, CreatePaymentResponseDTO, CreateUPIPaymentResponseDTO, HandleFailedPaymentDTO, HandleFailedPaymentResponseDTO, VerifyUpiPaymentDTO, VerifyUpiPaymentResponseDTO, } from '../../dto/create-payment.dto';
 import { IPaymentRepository } from '../../repositories/interfaces/order-payment.repository.interface';
 import RabbitMqOrderClient from '../../rabbitmq/order-service-connection/client';
 import RabbitMqRestaurantClient from '../../rabbitmq/restaurant-service-connection/client';
@@ -65,7 +65,6 @@ export class OrderPaymentService implements IOrderPaymentService {
             }
             const operation = 'Check-Stock'
             const stockCheck = await RabbitMqRestaurantClient.produce(data.cartItems, operation);
-            // console.log('stockCheck result :', stockCheck);
 
             if (!stockCheck?.success) {
                 return { error: stockCheck.message || 'Stock check failed.' };
@@ -89,7 +88,7 @@ export class OrderPaymentService implements IOrderPaymentService {
             return {
                 orderId: rawOrder.id,
                 razorpayKey: process.env.RAZORPAY_KEY_ID,
-                paymentDbId:payment.id
+                paymentDbId: payment.id
             };
         } catch (error) {
             console.error('Error in createOrder:', error);
@@ -99,7 +98,7 @@ export class OrderPaymentService implements IOrderPaymentService {
 
     async verifyUpiPayment(data: VerifyUpiPaymentDTO): Promise<VerifyUpiPaymentResponseDTO> {
         try {
-            const { razorpayOrderId, razorpayPaymentId, razorpaySignature, orderData,paymentDbId } = data;
+            const { razorpayOrderId, razorpayPaymentId, razorpaySignature, orderData, paymentDbId } = data;
             const razorData = razorpayOrderId + '|' + razorpayPaymentId;
 
             const expectedSignature = crypto
@@ -127,7 +126,7 @@ export class OrderPaymentService implements IOrderPaymentService {
             }
 
             await this.paymentRepository.updatePaymentStatus(
-                data.paymentDbId, 
+                data.paymentDbId,
                 'COMPLETED',
                 orderResult.orderId
             );
@@ -143,6 +142,26 @@ export class OrderPaymentService implements IOrderPaymentService {
             return {
                 success: false,
                 error: `Payment verification failed: ${error.message || 'Unknown error'}`
+            };
+        }
+    }
+
+    async handleFailedPayment(data: HandleFailedPaymentDTO): Promise<HandleFailedPaymentResponseDTO> {
+        try {
+            const { paymentDbId, razorpayOrderId, razorpayPaymentId, errorDescription, errorCode } = data;
+            await this.paymentRepository.updatePaymentStatus(paymentDbId, 'FAILED');
+            const cartHash = await this.paymentRepository.getCartHash(paymentDbId);
+            const lockKey = `order:lock:${data.userId}:${cartHash}`;
+            await redisClient.del(lockKey);
+            return {
+                success: true,
+                message: 'Payment failure recorded successfully',
+            };
+        } catch (error: any) {
+            console.error('Error in handleFailedPayment:', error);
+            return {
+                success: false,
+                message: `Failed to process payment failure: ${error.message || 'Unknown error'}`,
             };
         }
     }
