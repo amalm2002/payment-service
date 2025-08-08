@@ -13,8 +13,11 @@ export class OrderPaymentController implements IOrderPaymentController {
     async placeOrder(call: any, callback: any): Promise<void> {
         try {
             const data = call.request;
+            console.log('data place order :', data);
+
             const paymentDto: CreatePaymentDTO = {
                 userId: data.userId,
+                userName: data.userName,
                 cartItems: data.cartItems,
                 subtotal: data.subtotal,
                 deliveryFee: data.deliveryFee,
@@ -42,9 +45,12 @@ export class OrderPaymentController implements IOrderPaymentController {
     async createOrderPayment(call: any, callback: any): Promise<void> {
         try {
             const data = call.request;
+            console.log('data create order :', data);
+
             const paymentDto: CreatePaymentDTO = {
                 amount: data.amount,
                 userId: data.userId,
+                userName: data.userName,
                 cartItems: data.cartItems,
                 subtotal: data.subtotal,
                 deliveryFee: data.deliveryFee,
@@ -71,6 +77,8 @@ export class OrderPaymentController implements IOrderPaymentController {
     async verifyUpiPayment(call: any, callback: any): Promise<void> {
         try {
             const data = call.request
+            console.log('verify data :', data);
+
             const verifyUpiPayment: VerifyUpiPaymentDTO = {
                 paymentDbId: data.paymentIdDB,
                 razorpayOrderId: data.razorpayOrderId,
@@ -99,7 +107,7 @@ export class OrderPaymentController implements IOrderPaymentController {
             const data = call.request;
             const failedPaymentDto = {
                 paymentDbId: data.paymentDbId,
-                userId:data.userId,
+                userId: data.userId,
                 razorpayOrderId: data.razorpayOrderId,
                 razorpayPaymentId: data.razorpayPaymentId,
                 errorDescription: data.errorDescription,

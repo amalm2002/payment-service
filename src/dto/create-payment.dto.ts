@@ -1,6 +1,7 @@
 export interface CreatePaymentDTO {
     amount?: number
     userId: string;
+    userName?: string
     cartItems: any[];
     subtotal: number;
     deliveryFee: number;
