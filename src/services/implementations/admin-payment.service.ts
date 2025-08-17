@@ -4,19 +4,19 @@ import { IDeliveryBoyPaymentRepository } from '../../repositories/interfaces/adm
 import RabbitMqDeliveryBoyClient from '../../rabbitmq/delivery-boy-service-connection/client';
 import crypto from 'crypto';
 import redisClient from '../../config/redis.config';
+import {
+  CancelDeliveryBoyPaymentDTO,
+  CancelDeliveryBoyPaymentResponseDTO,
+  CreateDeliveryBoyPaymentDTO,
+  CreateDeliveryBoyPaymentResponseDTO,
+  GetDeliveryBoyInHandPaymentDTO,
+  GetDeliveryBoyInHandPaymentResponseDTO,
+  VerifyDeliveryBoyPaymentDTO,
+  VerifyDeliveryBoyPaymentResponseDTO
+} from '../../dto/admin/create-admin-payment.dto';
+import { PaymentData } from '../../dto/admin/payment.dto';
 
 
-interface PaymentData {
-  deliveryBoyId: string;
-  amount: number;
-  razorpayOrderId: string;
-  status: string;
-  inHandCash: number;
-  earnings: { date: Date; amount: number; paid: boolean }[];
-  role: string;
-  completeAmount?: number;
-  monthlyAmount?: number;
-}
 
 export class DeliveryBoyPaymentService implements IDeliveryBoyPaymentService {
   private razorpay: Razorpay;
@@ -28,7 +28,7 @@ export class DeliveryBoyPaymentService implements IDeliveryBoyPaymentService {
     });
   }
 
-  async createDeliveryBoyPayment(data: { deliveryBoyId: string; amount: number, role: string }) {
+  async createDeliveryBoyPayment(data: CreateDeliveryBoyPaymentDTO): Promise<CreateDeliveryBoyPaymentResponseDTO> {
     const { deliveryBoyId, amount, role } = data;
     const lockKey = `payment:lock:${deliveryBoyId}`;
     const lockTimeout = 1 * 60 * 1000;
@@ -130,13 +130,7 @@ export class DeliveryBoyPaymentService implements IDeliveryBoyPaymentService {
     }
   }
 
-  async verifyDeliveryBoyPayment(data: {
-    razorpayOrderId: string;
-    razorpayPaymentId: string;
-    razorpaySignature: string;
-    deliveryBoyId: string;
-    role: string;
-  }) {
+  async verifyDeliveryBoyPayment(data: VerifyDeliveryBoyPaymentDTO): Promise<VerifyDeliveryBoyPaymentResponseDTO> {
     const { razorpayOrderId, razorpayPaymentId, razorpaySignature, deliveryBoyId, role } = data;
     const lockKey = `payment:lock:${deliveryBoyId}`;
 
@@ -170,7 +164,7 @@ export class DeliveryBoyPaymentService implements IDeliveryBoyPaymentService {
         return { success: false, message: `Failed to ${role.toUpperCase() === 'ADMIN' ? 'update delivery boy earnings' : 'clear in-hand cash'}` };
       }
 
-      console.log('updatedDeliveryBoyEarnigs :', updateDeliveryBoyEarnings);
+      // console.log('updatedDeliveryBoyEarnigs :', updateDeliveryBoyEarnings);
 
 
       const { completeAmount, monthlyAmount, inHandCash, earnings, amountToPayDeliveryBoy } = updateDeliveryBoyEarnings.data;
@@ -210,7 +204,7 @@ export class DeliveryBoyPaymentService implements IDeliveryBoyPaymentService {
     }
   }
 
-  async cancelDeliveryBoyPayment(data: { deliveryBoyId: string; orderId: string; role: string; }) {
+  async cancelDeliveryBoyPayment(data: CancelDeliveryBoyPaymentDTO): Promise<CancelDeliveryBoyPaymentResponseDTO> {
     const { deliveryBoyId, orderId, role } = data;
     const lockKey = `payment:lock:${deliveryBoyId}`;
 
@@ -239,7 +233,7 @@ export class DeliveryBoyPaymentService implements IDeliveryBoyPaymentService {
     }
   }
 
-  async getDeliveryBoyInHandPaymentHistory(data: { deliveryBoyId: string; role: string; }): Promise<any> {
+  async getDeliveryBoyInHandPaymentHistory(data: GetDeliveryBoyInHandPaymentDTO): Promise<GetDeliveryBoyInHandPaymentResponseDTO> {
     const { deliveryBoyId, role } = data
     try {
       const formattedRole = role.toUpperCase()
@@ -247,7 +241,6 @@ export class DeliveryBoyPaymentService implements IDeliveryBoyPaymentService {
       if (paymentsData.length === 0) {
         return { success: false, message: ' No In-Hand payment history' }
       } else {
-        // console.log('paymentData :', paymentsData);
         return { success: true, payments: paymentsData, message: 'In-Hand payment history fetch successfully' }
       }
     } catch (error) {

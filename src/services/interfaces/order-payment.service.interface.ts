@@ -1,4 +1,4 @@
-import { CreatePaymentDTO, CreatePaymentResponseDTO, CreateUPIPaymentResponseDTO, HandleFailedPaymentDTO, HandleFailedPaymentResponseDTO, VerifyUpiPaymentDTO, VerifyUpiPaymentResponseDTO } from '../../dto/create-payment.dto';
+import { CreatePaymentDTO, CreatePaymentResponseDTO, CreateUPIPaymentResponseDTO, HandleFailedPaymentDTO, HandleFailedPaymentResponseDTO, VerifyUpiPaymentDTO, VerifyUpiPaymentResponseDTO } from '../../dto/order/create-payment.dto';
 
 export interface IOrderPaymentService {
   handleCashOnDelivery(data: CreatePaymentDTO): Promise<CreatePaymentResponseDTO>;

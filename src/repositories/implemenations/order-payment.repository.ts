@@ -42,7 +42,7 @@
 
 import { Types } from 'mongoose';
 import { PaymentModel } from '../../models/order.payment.model';
-import { CreatePaymentDTO } from '../../dto/create-payment.dto';
+import { CreatePaymentDTO } from '../../dto/order/create-payment.dto';
 import { IPaymentRepository } from '../interfaces/order-payment.repository.interface';
 import { IPayment } from '../../models/interfaces/payment.types';
 import { createHash } from 'crypto';

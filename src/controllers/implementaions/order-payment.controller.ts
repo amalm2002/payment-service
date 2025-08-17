@@ -1,4 +1,4 @@
-import { CreatePaymentDTO, VerifyUpiPaymentDTO } from '../../dto/create-payment.dto';
+import { CreatePaymentDTO, VerifyUpiPaymentDTO } from '../../dto/order/create-payment.dto';
 import { IOrderPaymentController } from '../interfaces/order-payment.controller.interface';
 import { IOrderPaymentService } from '../../services/interfaces/order-payment.service.interface';
 
@@ -13,8 +13,6 @@ export class OrderPaymentController implements IOrderPaymentController {
     async placeOrder(call: any, callback: any): Promise<void> {
         try {
             const data = call.request;
-            console.log('data place order :', data);
-
             const paymentDto: CreatePaymentDTO = {
                 userId: data.userId,
                 userName: data.userName,
@@ -45,8 +43,6 @@ export class OrderPaymentController implements IOrderPaymentController {
     async createOrderPayment(call: any, callback: any): Promise<void> {
         try {
             const data = call.request;
-            console.log('data create order :', data);
-
             const paymentDto: CreatePaymentDTO = {
                 amount: data.amount,
                 userId: data.userId,
@@ -77,8 +73,6 @@ export class OrderPaymentController implements IOrderPaymentController {
     async verifyUpiPayment(call: any, callback: any): Promise<void> {
         try {
             const data = call.request
-            console.log('verify data :', data);
-
             const verifyUpiPayment: VerifyUpiPaymentDTO = {
                 paymentDbId: data.paymentIdDB,
                 razorpayOrderId: data.razorpayOrderId,

@@ -1,6 +1,5 @@
 import { IDeliveryBoyPaymentController } from '../interfaces/admin-payment.controller.interfaces';
 import { IDeliveryBoyPaymentService } from '../../services/interfaces/admin-payment.service.interfaces';
-import { error } from 'console';
 
 export class DeliveryBoyPaymentController implements IDeliveryBoyPaymentController {
     constructor(private deliveryBoyPaymentService: IDeliveryBoyPaymentService) { }
@@ -51,7 +50,6 @@ export class DeliveryBoyPaymentController implements IDeliveryBoyPaymentControll
 
     async getDeliveryBoyInHandPaymentHistory(call: any, callback: any): Promise<void> {
         try {
-            console.log('call request :', call.request);
             const { deliveryBoyId, role } = call.request;
             const response = await this.deliveryBoyPaymentService.getDeliveryBoyInHandPaymentHistory({ deliveryBoyId, role });
             callback(null, response);

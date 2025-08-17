@@ -1,4 +1,4 @@
-import { CreatePaymentDTO } from '../../dto/create-payment.dto';
+import { CreatePaymentDTO } from '../../dto/order/create-payment.dto';
 import { IPayment } from '../../models/interfaces/payment.types';
 
 export interface IPaymentRepository {
