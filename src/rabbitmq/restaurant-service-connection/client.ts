@@ -7,56 +7,54 @@ import Consumer from "./consumer";
 class RabbitMqClient {
     private constructor() { }
 
-    private static instance: RabbitMqClient | null = null;
-    private isInitialized = false;
-    private producer: Producer | undefined;
-    private consumer: Consumer | undefined;
-    private connection: Connection | undefined;
-    private produceChannel: Channel | undefined;
-    private consumerChannel: Channel | undefined;
-    private eventEmitter: EventEmitter | undefined;
+    private static _instance: RabbitMqClient | null = null;
+    private _isInitialized = false;
+    private _producer: Producer | undefined;
+    private _consumer: Consumer | undefined;
+    private _connection: Connection | undefined;
+    private _produceChannel: Channel | undefined;
+    private _consumerChannel: Channel | undefined;
+    private _eventEmitter: EventEmitter | undefined;
 
     public static getInstance(): RabbitMqClient {
-        if (!this.instance) {
-            this.instance = new RabbitMqClient();
+        if (!this._instance) {
+            this._instance = new RabbitMqClient();
         }
-        return this.instance;
+        return this._instance;
     }
 
     async initialize() {
-        if (this.isInitialized) return;
+        if (this._isInitialized) return;
 
         try {
-            this.connection = await connect(rabbitmqConfig.rebbitMQ.url);
+            this._connection = await connect(rabbitmqConfig.rebbitMQ.url);
 
             const [produceChannel, consumerChannel] = await Promise.all([
-                this.connection.createChannel(),
-                this.connection.createChannel()
+                this._connection.createChannel(),
+                this._connection.createChannel()
             ]);
 
-            this.produceChannel = produceChannel;
-            this.consumerChannel = consumerChannel;
+            this._produceChannel = produceChannel;
+            this._consumerChannel = consumerChannel;
 
-            const { queue: replyQueueName } = await this.consumerChannel.assertQueue("", { exclusive: true });
-            this.eventEmitter = new EventEmitter();
+            const { queue: replyQueueName } = await this._consumerChannel.assertQueue("", { exclusive: true });
+            this._eventEmitter = new EventEmitter();
 
-            this.producer = new Producer(this.produceChannel, replyQueueName, this.eventEmitter);
-            this.consumer = new Consumer(this.consumerChannel, replyQueueName, this.eventEmitter);
-            this.consumer.consumeMessage();
+            this._producer = new Producer(this._produceChannel, replyQueueName, this._eventEmitter);
+            this._consumer = new Consumer(this._consumerChannel, replyQueueName, this._eventEmitter);
+            this._consumer.consumeMessage();
 
-            this.isInitialized = true;
+            this._isInitialized = true;
         } catch (error) {
             console.error("RabbitMQ connection error:", error);
         }
     }
 
     async produce(data: any, operation: string) {
-        console.log(operation,'===============');
-
-        if (!this.isInitialized) {
+        if (!this._isInitialized) {
             await this.initialize();
         }
-        return await this.producer?.produceMessage(data, operation);
+        return await this._producer?.produceMessage(data, operation);
     }
 
 

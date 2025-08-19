@@ -5,9 +5,9 @@ import { randomUUID } from 'crypto';
 
 export default class Producer {
     constructor(
-        private channel: Channel,
-        private replyQueueName: string,
-        private eventEmitter: EventEmitter
+        private _channel: Channel,
+        private _replyQueueName: string,
+        private _eventEmitter: EventEmitter
     ) { }
 
     async produceMessage(data: any, operation: string): Promise<any> {
@@ -16,14 +16,14 @@ export default class Producer {
         const uuid = randomUUID();
 
         return new Promise((resolve, reject) => {
-            this.eventEmitter.once(correlationId, (message) => {
+            this._eventEmitter.once(correlationId, (message) => {
                 const content = JSON.parse(message.content.toString());
                 resolve(content);
             });
 
-            this.channel.sendToQueue(queueName, Buffer.from(JSON.stringify(data)), {
+            this._channel.sendToQueue(queueName, Buffer.from(JSON.stringify(data)), {
                 correlationId,
-                replyTo: this.replyQueueName,
+                replyTo: this._replyQueueName,
                 headers: {
                     function: operation
                 },

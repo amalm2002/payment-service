@@ -2,12 +2,15 @@ import { IDeliveryBoyPaymentController } from '../interfaces/admin-payment.contr
 import { IDeliveryBoyPaymentService } from '../../services/interfaces/admin-payment.service.interfaces';
 
 export class DeliveryBoyPaymentController implements IDeliveryBoyPaymentController {
-    constructor(private deliveryBoyPaymentService: IDeliveryBoyPaymentService) { }
+
+    constructor(
+        private readonly _deliveryBoyPaymentService: IDeliveryBoyPaymentService
+    ) { }
 
     async createDeliveryBoyPayment(call: any, callback: any): Promise<void> {
         try {
             const { deliveryBoyId, amount, role } = call.request;
-            const response = await this.deliveryBoyPaymentService.createDeliveryBoyPayment({ deliveryBoyId, amount, role });
+            const response = await this._deliveryBoyPaymentService.createDeliveryBoyPayment({ deliveryBoyId, amount, role });
             callback(null, {
                 deliveryBoyId: response.deliveryBoyId,
                 razorpayKey: response.razorpayKey,
@@ -25,7 +28,7 @@ export class DeliveryBoyPaymentController implements IDeliveryBoyPaymentControll
 
     async verifyDeliveryBoyPayment(call: any, callback: any): Promise<void> {
         try {
-            const response = await this.deliveryBoyPaymentService.verifyDeliveryBoyPayment(call.request);
+            const response = await this._deliveryBoyPaymentService.verifyDeliveryBoyPayment(call.request);
             callback(null, response);
         } catch (error: any) {
             callback(null, {
@@ -38,7 +41,7 @@ export class DeliveryBoyPaymentController implements IDeliveryBoyPaymentControll
     async cancelDeliveryBoyPayment(call: any, callback: any): Promise<void> {
         try {
             const { deliveryBoyId, orderId, role } = call.request;
-            const response = await this.deliveryBoyPaymentService.cancelDeliveryBoyPayment({ deliveryBoyId, orderId, role });
+            const response = await this._deliveryBoyPaymentService.cancelDeliveryBoyPayment({ deliveryBoyId, orderId, role });
             callback(null, response);
         } catch (error: any) {
             callback(null, {
@@ -51,7 +54,7 @@ export class DeliveryBoyPaymentController implements IDeliveryBoyPaymentControll
     async getDeliveryBoyInHandPaymentHistory(call: any, callback: any): Promise<void> {
         try {
             const { deliveryBoyId, role } = call.request;
-            const response = await this.deliveryBoyPaymentService.getDeliveryBoyInHandPaymentHistory({ deliveryBoyId, role });
+            const response = await this._deliveryBoyPaymentService.getDeliveryBoyInHandPaymentHistory({ deliveryBoyId, role });
             callback(null, response);
         } catch (error) {
             callback(null, {

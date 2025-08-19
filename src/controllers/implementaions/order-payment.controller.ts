@@ -4,11 +4,10 @@ import { IOrderPaymentService } from '../../services/interfaces/order-payment.se
 
 
 export class OrderPaymentController implements IOrderPaymentController {
-    private orderPaymentService: IOrderPaymentService
 
-    constructor(orderPaymentService: IOrderPaymentService) {
-        this.orderPaymentService = orderPaymentService
-    }
+    constructor(
+        private readonly _orderPaymentService: IOrderPaymentService
+    ) { }
 
     async placeOrder(call: any, callback: any): Promise<void> {
         try {
@@ -26,7 +25,7 @@ export class OrderPaymentController implements IOrderPaymentController {
                 paymentMethod: data.paymentMethod,
                 location: data.location,
             };
-            const paymentResult = await this.orderPaymentService.handleCashOnDelivery(paymentDto);
+            const paymentResult = await this._orderPaymentService.handleCashOnDelivery(paymentDto);
             callback(null, {
                 message: 'Order placed successfully',
                 paymentId: paymentResult.payment._id,
@@ -57,7 +56,7 @@ export class OrderPaymentController implements IOrderPaymentController {
                 paymentMethod: data.paymentMethod,
                 location: data.location,
             };
-            const paymentResult = await this.orderPaymentService.createUpiPaymentOrder(paymentDto);
+            const paymentResult = await this._orderPaymentService.createUpiPaymentOrder(paymentDto);
             callback(null, {
                 razorpayKey: paymentResult.razorpayKey,
                 orderId: paymentResult.orderId,
@@ -80,7 +79,7 @@ export class OrderPaymentController implements IOrderPaymentController {
                 razorpaySignature: data.razorpaySignature,
                 orderData: data.orderData
             }
-            const response = await this.orderPaymentService.verifyUpiPayment(verifyUpiPayment);
+            const response = await this._orderPaymentService.verifyUpiPayment(verifyUpiPayment);
             callback(null, {
                 success: response.success,
                 message: response.success ? "Order created successfully" : response.error,
@@ -107,7 +106,7 @@ export class OrderPaymentController implements IOrderPaymentController {
                 errorDescription: data.errorDescription,
                 errorCode: data.errorCode,
             };
-            const response = await this.orderPaymentService.handleFailedPayment(failedPaymentDto);
+            const response = await this._orderPaymentService.handleFailedPayment(failedPaymentDto);
             callback(null, {
                 success: response.success,
                 message: response.message,

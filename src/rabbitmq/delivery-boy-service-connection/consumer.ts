@@ -3,16 +3,16 @@ import EventEmitter from "events";
 
 export default class Consumer {
     constructor(
-        private channel: Channel,
-        private replyQueueName: string,
-        private eventEmitter: EventEmitter
+        private readonly _channel: Channel,
+        private readonly _replyQueueName: string,
+        private readonly _eventEmitter: EventEmitter
     ) {}
 
     async consumeMessage() {
         console.log('Starting to consume messages...');
 
-        this.channel.consume(
-            this.replyQueueName,
+        this._channel.consume(
+            this._replyQueueName,
             (message: ConsumeMessage | null) => {
                 if (message) {
                     const correlationId = message.properties.correlationId;
@@ -21,7 +21,7 @@ export default class Consumer {
                     console.log(`Received message for operation: ${operation}`);
 
                     if (correlationId) {
-                        this.eventEmitter.emit(correlationId.toString(), message);
+                        this._eventEmitter.emit(correlationId.toString(), message);
                     } else {
                         console.warn("Message missing correlationId:", message);
                     }
