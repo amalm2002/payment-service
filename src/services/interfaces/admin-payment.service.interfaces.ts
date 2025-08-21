@@ -10,8 +10,8 @@ import {
 } from "../../dto/admin/create-admin-payment.dto";
 
 export interface IDeliveryBoyPaymentService {
-    createDeliveryBoyPayment(data: CreateDeliveryBoyPaymentDTO): Promise<CreateDeliveryBoyPaymentResponseDTO>;
-    verifyDeliveryBoyPayment(data: VerifyDeliveryBoyPaymentDTO): Promise<VerifyDeliveryBoyPaymentResponseDTO>;
-    cancelDeliveryBoyPayment(data: CancelDeliveryBoyPaymentDTO): Promise<CancelDeliveryBoyPaymentResponseDTO>
-    getDeliveryBoyInHandPaymentHistory(data: GetDeliveryBoyInHandPaymentDTO): Promise<GetDeliveryBoyInHandPaymentResponseDTO>
+    createDeliveryBoyPayment(paymentCreationRequest: CreateDeliveryBoyPaymentDTO): Promise<CreateDeliveryBoyPaymentResponseDTO>;
+    verifyDeliveryBoyPayment(paymentVerificationRequest: VerifyDeliveryBoyPaymentDTO): Promise<VerifyDeliveryBoyPaymentResponseDTO>;
+    cancelDeliveryBoyPayment(paymentCancellationRequest: CancelDeliveryBoyPaymentDTO): Promise<CancelDeliveryBoyPaymentResponseDTO>
+    getDeliveryBoyInHandPaymentHistory(paymentHistoryRequest: GetDeliveryBoyInHandPaymentDTO): Promise<GetDeliveryBoyInHandPaymentResponseDTO>
 }

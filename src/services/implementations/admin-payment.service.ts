@@ -28,8 +28,8 @@ export class DeliveryBoyPaymentService implements IDeliveryBoyPaymentService {
     });
   }
 
-  async createDeliveryBoyPayment(data: CreateDeliveryBoyPaymentDTO): Promise<CreateDeliveryBoyPaymentResponseDTO> {
-    const { deliveryBoyId, amount, role } = data;
+  async createDeliveryBoyPayment(paymentCreationRequest: CreateDeliveryBoyPaymentDTO): Promise<CreateDeliveryBoyPaymentResponseDTO> {
+    const { deliveryBoyId, amount, role } = paymentCreationRequest;
     const lockKey = `payment:lock:${deliveryBoyId}`;
     const lockTimeout = 1 * 60 * 1000;
 
@@ -130,8 +130,8 @@ export class DeliveryBoyPaymentService implements IDeliveryBoyPaymentService {
     }
   }
 
-  async verifyDeliveryBoyPayment(data: VerifyDeliveryBoyPaymentDTO): Promise<VerifyDeliveryBoyPaymentResponseDTO> {
-    const { razorpayOrderId, razorpayPaymentId, razorpaySignature, deliveryBoyId, role } = data;
+  async verifyDeliveryBoyPayment(paymentVerificationRequest: VerifyDeliveryBoyPaymentDTO): Promise<VerifyDeliveryBoyPaymentResponseDTO> {
+    const { razorpayOrderId, razorpayPaymentId, razorpaySignature, deliveryBoyId, role } = paymentVerificationRequest;
     const lockKey = `payment:lock:${deliveryBoyId}`;
 
     try {
@@ -204,8 +204,8 @@ export class DeliveryBoyPaymentService implements IDeliveryBoyPaymentService {
     }
   }
 
-  async cancelDeliveryBoyPayment(data: CancelDeliveryBoyPaymentDTO): Promise<CancelDeliveryBoyPaymentResponseDTO> {
-    const { deliveryBoyId, orderId, role } = data;
+  async cancelDeliveryBoyPayment(paymentCancellationRequest: CancelDeliveryBoyPaymentDTO): Promise<CancelDeliveryBoyPaymentResponseDTO> {
+    const { deliveryBoyId, orderId, role } = paymentCancellationRequest;
     const lockKey = `payment:lock:${deliveryBoyId}`;
 
     try {
@@ -233,8 +233,8 @@ export class DeliveryBoyPaymentService implements IDeliveryBoyPaymentService {
     }
   }
 
-  async getDeliveryBoyInHandPaymentHistory(data: GetDeliveryBoyInHandPaymentDTO): Promise<GetDeliveryBoyInHandPaymentResponseDTO> {
-    const { deliveryBoyId, role } = data
+  async getDeliveryBoyInHandPaymentHistory(paymentHistoryRequest: GetDeliveryBoyInHandPaymentDTO): Promise<GetDeliveryBoyInHandPaymentResponseDTO> {
+    const { deliveryBoyId, role } = paymentHistoryRequest
     try {
       const formattedRole = role.toUpperCase()
       const paymentsData = await this.repository.findPaymentsHistory(deliveryBoyId, formattedRole)

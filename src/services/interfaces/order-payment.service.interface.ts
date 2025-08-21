@@ -1,8 +1,8 @@
 import { CreatePaymentDTO, CreatePaymentResponseDTO, CreateUPIPaymentResponseDTO, HandleFailedPaymentDTO, HandleFailedPaymentResponseDTO, VerifyUpiPaymentDTO, VerifyUpiPaymentResponseDTO } from '../../dto/order/create-payment.dto';
 
 export interface IOrderPaymentService {
-  handleCashOnDelivery(data: CreatePaymentDTO): Promise<CreatePaymentResponseDTO>;
-  createUpiPaymentOrder(data: CreatePaymentDTO): Promise<CreateUPIPaymentResponseDTO>;
-  verifyUpiPayment(data: VerifyUpiPaymentDTO): Promise<VerifyUpiPaymentResponseDTO>
-  handleFailedPayment(data: HandleFailedPaymentDTO): Promise<HandleFailedPaymentResponseDTO>;
+  handleCashOnDelivery(cashPaymentRequest: CreatePaymentDTO): Promise<CreatePaymentResponseDTO>;
+  createUpiPaymentOrder(upiPaymentRequest: CreatePaymentDTO): Promise<CreateUPIPaymentResponseDTO>;
+  verifyUpiPayment(upiPaymentVerificationRequest: VerifyUpiPaymentDTO): Promise<VerifyUpiPaymentResponseDTO>
+  handleFailedPayment(failedPaymentRequest: HandleFailedPaymentDTO): Promise<HandleFailedPaymentResponseDTO>;
 }

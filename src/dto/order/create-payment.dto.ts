@@ -22,6 +22,7 @@ export interface CreatePaymentResponseDTO {
     success?: boolean;
     orderId?: string;
     message?: string;
+    orderNumber?: number;
 }
 
 export interface CreateUPIPaymentResponseDTO {
@@ -41,6 +42,7 @@ export interface VerifyUpiPaymentDTO {
 
 export interface VerifyUpiPaymentResponseDTO {
     orderId?: string;
+    orderNumber?: number;
     success?: boolean;
     error?: string
 }

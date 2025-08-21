@@ -31,6 +31,7 @@ export class OrderPaymentController implements IOrderPaymentController {
                 paymentId: paymentResult.payment._id,
                 orderId: paymentResult.orderId,
                 success: paymentResult.success,
+                orderNumber:paymentResult.orderNumber
             });
 
         } catch (error) {
@@ -83,7 +84,8 @@ export class OrderPaymentController implements IOrderPaymentController {
             callback(null, {
                 success: response.success,
                 message: response.success ? "Order created successfully" : response.error,
-                orderId: response.orderId || ""
+                orderId: response.orderId || "",
+                orderNumber:response.orderNumber
             });
         } catch (error: any) {
             console.error('Error in UPI Payment Verification:', error);
