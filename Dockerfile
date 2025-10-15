@@ -15,7 +15,7 @@ COPY . .
 RUN npm run build
 
 # Copy all proto files into dist
-RUN cp -r src/proto dist/
+# RUN cp -r src/proto dist/
 
 # Expose service port
 EXPOSE 3008
