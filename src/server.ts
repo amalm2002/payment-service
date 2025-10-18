@@ -23,8 +23,8 @@ const deliveryBoyPaymentService = new DeliveryBoyPaymentService(deliveryBoyPayme
 const orderPaymentController: IOrderPaymentController = new OrderPaymentController(service);
 const deliveryBoyPaymentController: IDeliveryBoyPaymentController = new DeliveryBoyPaymentController(deliveryBoyPaymentService)
 
-// const packageDef = protoLoader.loadSync(path.resolve(__dirname, './proto/payment.proto'), {
-const packageDef = protoLoader.loadSync(path.resolve(__dirname, '../src/proto/payment.proto'), {
+const packageDef = protoLoader.loadSync(path.resolve(__dirname, './proto/payment.proto'), {
+// const packageDef = protoLoader.loadSync(path.resolve(__dirname, '../src/proto/payment.proto'), {
     keepCase: true,
     longs: String,
     enums: String,
