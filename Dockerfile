@@ -24,21 +24,16 @@
 # CMD ["node", "dist/server.js"]
 
 
+
 FROM node:20
 WORKDIR /app
-
-# Copy package files and install dependencies
 COPY package*.json ./
 RUN npm install
-
-# Copy source code (including proto files)
 COPY . .
-
-# Build TypeScript code
 RUN npm run build
 
-# Explicitly copy proto files into dist
-RUN mkdir -p dist/proto && cp -r src/proto/* dist/proto/
+# RUN mkdir -p dist/proto && cp src/proto/payment.proto dist/proto/payment.proto
 
 EXPOSE 3008
+
 CMD ["node", "dist/server.js"]
