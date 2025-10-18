@@ -1,0 +1,209 @@
+syntax = "proto3";
+
+package payment_package;
+
+service PaymentService {
+  rpc CreateOrderPayment(CreateOrderPaymentRequest) returns (OrderPaymentResponse);
+  rpc PlaceOrder(PlaceOrderRequest) returns (PlaceOrderResponse);
+  rpc VerifyUpiPayment(VerifyUpiPaymentRequest) returns (VerifyUpiPaymentResponse);
+  rpc HandleFailedPayment(HandleFailedPaymentRequest) returns (HandleFailedPaymentResponse);
+  rpc CreateDeliveryBoyPayment(CreateDeliveryBoyPaymentRequest) returns (CreateDeliveryBoyPaymentResponse);
+  rpc VerifyDeliveryBoyPayment(VerifyDeliveryBoyPaymentRequest) returns (VerifyDeliveryBoyPaymentResponse);
+  rpc CancelDeliveryBoyPayment(CancelDeliveryBoyPaymentRequest) returns (CancelDeliveryBoyPaymentResponse);
+  rpc GetDeliveryBoyInHandPaymentHistory(GetDeliveryBoyInHandPaymentHistoryRequest) returns (GetDeliveryBoyInHandPaymentHistoryResponse);
+
+}
+
+message CreateDeliveryBoyPaymentRequest {
+  double amount = 1;
+  string deliveryBoyId = 2;
+  string role = 3;
+}
+
+message CreateDeliveryBoyPaymentResponse {
+  string orderId = 1;
+  string razorpayKey = 2;
+  string error = 3;
+}
+
+message VerifyDeliveryBoyPaymentRequest {
+  string razorpayOrderId = 1;
+  string razorpayPaymentId = 2;
+  string razorpaySignature = 3;
+  string deliveryBoyId = 4;
+  string role = 5;
+}
+
+message VerifyDeliveryBoyPaymentResponse {
+  string deliveryBoyId = 1;
+  string paymentId = 2;
+  bool success = 3;
+  string message = 4;
+}
+
+message CancelDeliveryBoyPaymentRequest {
+  string deliveryBoyId = 1;
+  string orderId = 2 ;
+  string role = 3 ;
+}
+
+message CancelDeliveryBoyPaymentResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message GetDeliveryBoyInHandPaymentHistoryRequest {
+  string deliveryBoyId = 1;
+  string role = 2;
+}
+
+message Earning {
+  string date = 1;
+  double amount = 2;
+  bool paid = 3;
+}
+
+message DeliveryBoyPayment {
+  string id = 1;
+  string deliveryBoyId = 2;
+  double amount = 3;
+  double completeAmount = 4;
+  double monthlyAmount = 5;
+  double inHandCash = 6;
+  double amountToPayDeliveryBoy = 7;
+  repeated Earning earnings = 8;
+  string razorpayOrderId = 9;
+  string razorpayPaymentId = 10;
+  string status = 11;
+  string createdAt = 12;
+  string role = 13;
+}
+
+message GetDeliveryBoyInHandPaymentHistoryResponse {
+  bool success = 1;
+  string message = 2;
+  repeated DeliveryBoyPayment payments = 3;
+}
+
+message CreateOrderPaymentRequest {
+  double amount = 1;
+  string userId = 2;
+  repeated CartItem cartItems = 3;
+}
+
+message CartItem {
+  string menuId = 1;
+  int32 quantity = 2;
+  double price = 3;
+  string name = 4;
+  string restaurantId = 5;
+  string restaurant = 6;
+  string category = 7;
+  double discount = 8;
+  string description = 9;
+  string timing = 10;
+  double rating = 11;
+  bool hasVariants = 12;
+  repeated string images = 13;
+  repeated string variants = 14; 
+  string id = 15;
+}
+
+message OrderPaymentResponse {
+  string orderId = 1;
+  string razorpayKey = 2;
+  string error = 3;
+  string paymentDbId = 4;
+}
+
+message PlaceOrderRequest {
+  string userId = 1;
+  string userName = 2;
+  repeated CartItems cartItems = 4;
+
+  double subtotal = 5;
+  double deliveryFee = 6;
+  double tax = 7;
+  double total = 8;
+
+  Location location = 9;
+  string address = 10;
+  string phoneNumber = 11;
+  string paymentMethod = 12;
+}
+
+message CartItems {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  double price = 4;
+  int32 quantity = 5;
+  repeated string images = 6;
+  string restaurantId = 7;
+  string restaurant = 8;
+  string category = 9;
+  double discount = 10;
+  string timing = 11;
+  double rating = 12;
+  bool hasVariants = 13;
+  repeated string variants = 14;
+  int32 maxAvailableQty = 15;
+}
+
+message Location {
+  double latitude = 1;
+  double longitude = 2;
+}
+
+message PlaceOrderResponse {
+  string orderId = 1;
+  string message = 2;
+  bool success = 3;
+  string paymentId = 4;
+  int32 orderNumber = 5;
+}
+
+message VerifyUpiPaymentRequest {
+  string razorpayOrderId = 1;
+  string razorpayPaymentId = 2;
+  string razorpaySignature = 3;
+  OrderData orderData = 4;
+  string paymentIdDB = 5;
+}
+
+message VerifyUpiPaymentResponse {
+  string orderId = 1;
+  string paymentId = 2;
+  bool success = 3;
+  string message = 4;
+  int32 orderNumber = 5;
+}
+
+message OrderData {
+  string userId = 1;
+  repeated CartItems cartItems = 2;
+  double subtotal = 3;
+  double deliveryFee = 4;
+  double tax = 5;
+  double total = 6;
+  Location location = 7;
+  string address = 8;
+  string phoneNumber = 9;
+  string paymentMethod = 10;
+  string paymentId = 11;
+  string userName = 12;
+}
+
+message HandleFailedPaymentRequest {
+  string paymentDbId = 1;
+  string userId = 2;
+  string razorpayOrderId = 3;
+  string razorpayPaymentId = 4;
+  string errorDescription = 5;
+  string errorCode = 6;
+}
+
+message HandleFailedPaymentResponse {
+  bool success = 1;
+  string message = 2;
+}
