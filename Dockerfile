@@ -24,16 +24,11 @@
 # CMD ["node", "dist/server.js"]
 
 
-
 FROM node:20
 WORKDIR /app
 COPY package*.json ./
 RUN npm install
 COPY . .
 RUN npm run build
-
-# RUN mkdir -p dist/proto && cp src/proto/payment.proto dist/proto/payment.proto
-
 EXPOSE 3008
-
 CMD ["node", "dist/server.js"]

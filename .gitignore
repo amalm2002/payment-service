@@ -1,6 +1,6 @@
 .env
 node_modules
-src/proto
+# src/proto
 .env.docker
 dist
 k8s/
