@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: payment-service
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: payment-service
+  template:
+    metadata:
+      labels:
+        app: payment-service
+    spec:
+      containers:
+        - name: payment-service
+          image: amalm2002/payment-service:latest
+          ports:
+            - containerPort: 3008   
+          env:
+            - name: NODE_ENV
+              value: "production"
+            - name: PORT
+              value: "3008"
+
+            # Secrets
+            - name: MONGO_URL_PRO
+              valueFrom:
+                secretKeyRef:
+                  name: payment-secrets
+                  key: MONGO_URL_PRO
+            - name: RABBITMQ_URL
+              valueFrom:
+                secretKeyRef:
+                  name: payment-secrets
+                  key: RABBITMQ_URL
+            - name: REDIS_URL
+              valueFrom:
+                secretKeyRef:
+                  name: payment-secrets
+                  key: REDIS_URL
+            - name: RAZORPAY_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: payment-secrets
+                  key: RAZORPAY_KEY_ID
+            - name: RAZORPAY_SECRET_ID
+              valueFrom:
+                secretKeyRef:
+                  name: payment-secrets
+                  key: RAZORPAY_SECRET_ID

@@ -3,4 +3,4 @@ node_modules
 # src/proto
 .env.docker
 dist
-k8s/
+k8s/payment-secrets.yml
